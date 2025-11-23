@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify, render_template
 app = Flask(__name__)
 
 # Conexão com o arquivo .db (no Termux)
-db = sqlite3.connect('/data/data/com.termux/files/home/myslqenter.db', check_same_thread=False)
+db = sqlite3.connect('/data/data/com.termux/files/home/downloads/myslqenter.db', check_same_thread=False)
 cursor = db.cursor()
 
 # Criar tabela se não existir
