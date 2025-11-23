@@ -1,21 +1,30 @@
 import sqlite3
 from flask import Flask, request, jsonify, render_template
+import os
 
 app = Flask(__name__)
 
-# Conexão com o arquivo .db (no Termux)
-db = sqlite3.connect('/data/data/com.termux/files/home/downloads/myslqenter.db', check_same_thread=False)
-cursor = db.cursor()
+DB_PATH = '/data/data/com.termux/files/home/downloads/myslqenter.db'
 
-# Criar tabela se não existir
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS contatos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL,
-    mensagem TEXT NOT NULL
-)
-""")
-db.commit()
+# Função para criar conexão por requisição
+def get_db_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # Permite acessar colunas por nome
+    return conn
+
+# Criar a tabela caso não exista
+if not os.path.exists(DB_PATH):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS contatos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        mensagem TEXT NOT NULL
+    )
+    """)
+    conn.commit()
+    conn.close()
 
 @app.route('/')
 def index():
@@ -31,14 +40,16 @@ def salvar_dados():
         return jsonify({'erro': 'Dados incompletos'}), 400
 
     try:
-        sql = "INSERT INTO contatos (email, mensagem) VALUES (?, ?)"
-        cursor.execute(sql, (email, mensagem))
-        db.commit()
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO contatos (email, mensagem) VALUES (?, ?)", (email, mensagem))
+        conn.commit()
+        conn.close()
         return jsonify({'sucesso': True})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
-
 if __name__ == '__main__':
+    # Executa no Termux (localhost:5000)
     app.run(host='0.0.0.0', port=5000, debug=True)
-
+    
