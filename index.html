@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>Formulário Seguro</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    form { max-width: 400px; margin: auto; display: flex; flex-direction: column; gap: 10px; }
+    input, button { padding: 8px; font-size: 16px; }
+    #saida { margin-top: 20px; padding: 10px; border: 1px solid #ccc; min-height: 20px; }
+  </style>
 </head>
 <body>
 
   <h1>Contato</h1>
 
-  <!-- Aqui vai o formulário -->
+  <!-- Formulário -->
   <form id="meuForm">
     <label for="email">Email:</label>
     <input type="text" id="email" name="email" placeholder="Digite seu email">
@@ -19,10 +25,9 @@
     <button type="submit">Enviar</button>
   </form>
 
-  <!-- Aqui será exibida a mensagem segura -->
+  <!-- Mensagem segura -->
   <div id="saida"></div>
 
-  <!-- Script de segurança -->
   <script>
     // Função para validar email
     function validarEmail(email) {
@@ -30,7 +35,7 @@
       return regex.test(email);
     }
 
-    // Função para escapar caracteres especiais (prevenir XSS)
+    // Escapa caracteres especiais para evitar XSS
     function escapeHtml(text) {
       const map = {
         '&': '&amp;',
@@ -42,12 +47,12 @@
       return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 
-    // Pegando o form
+    // Pegando o form e a saída
     const form = document.getElementById('meuForm');
     const output = document.getElementById('saida');
 
     form.addEventListener('submit', function(e) {
-      e.preventDefault(); // impede envio automático
+      e.preventDefault(); // evita envio automático
 
       const email = document.getElementById('email').value;
       const mensagem = document.getElementById('mensagem').value;
@@ -58,10 +63,27 @@
         return;
       }
 
-      // Escapa mensagem antes de mostrar
+      // Mostra a mensagem escapada
       output.textContent = escapeHtml(mensagem);
 
-      alert('Dados validados e seguros!');
+      // Envia dados para o back-end Flask
+      fetch('/salvar-dados', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, mensagem })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.sucesso) {
+          alert('Dados enviados e salvos com sucesso!');
+        } else {
+          alert('Erro ao salvar os dados: ' + (data.erro || 'desconhecido'));
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Erro na conexão com o servidor.');
+      });
     });
   </script>
 
