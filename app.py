@@ -38,6 +38,7 @@ def salvar_dados():
         return jsonify({'erro': str(e)}), 500
 
 if __name__ == '__main__':
-    # Para HTTPS local, use certificados autoassinados
+    # Para HTTPS local, gere certificados autoassinados
     context = ('certs/cert.pem', 'certs/key.pem')  # opcional
     app.run(host='0.0.0.0', port=5000, debug=True, ssl_context=context)
+    
